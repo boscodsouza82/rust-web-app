@@ -2,9 +2,6 @@
 run:
   cargo watch -q -c -w src/ -w .cargo/ -x 'run --bin rust-web-app'
 
-test:
-  cargo watch -q -c -w tests/ -x 'test -q quick_dev -- --nocapture'
-
 quick_dev:
   cargo watch -q -c -w examples/ -x 'run --example quick_dev'
 
@@ -13,3 +10,10 @@ postgres:
 
 psql:
   docker exec -it -u postgres pg psql
+
+test:
+  # cargo watch -q -c -w tests/ -x 'test -q quick_dev -- --nocapture'
+ 
+  cargo watch -q -c -x "test -- --nocapture"
+  # cargo watch -q -c -x "test model::task::tests::test_delete -- --nocapture"
+
