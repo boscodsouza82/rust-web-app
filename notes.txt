@@ -1,0 +1,11 @@
+For Data
+========
+1. just postgres
+2. just psql
+
+For Code
+========
+1. just run 
+2. just quick_dev
+
+
