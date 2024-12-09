@@ -1,5 +1,32 @@
 // #![allow(unused)] // For early development.
 
+/* /
+:clear
+# -- Async
+:dep tokio = { version = "1", features = ["full"] }
+:dep async-trait = "0.1"
+# -- Json
+:dep serde = { version = "1", features = ["derive"] }
+:dep serde_json = "1"
+:dep serde_with = "3"
+# -- Web
+:dep axum = {version = "0.7", features = ["macros"]}
+:dep tower-http = { version = "0.5", features = ["fs"] }
+:dep tower-cookies = "0.10"
+# -- Tracing
+:dep tracing = "0.1"
+:dep tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+# -- Others
+:dep uuid = {version = "1", features = ["v4","fast-rng",]}
+:dep strum_macros = "0.25"
+:dep derive_more = {version = "1.0.0-beta", features = ["from"] }
+# -- App Libs
+:dep lib-utils = { path = "./crates/libs/lib-utils"}
+:dep lib-rpc = { path = "./crates/libs/lib-rpc"}
+:dep lib-auth = { path = "./crates/libs/lib-auth"}
+:dep lib-core = { path = "./crates/libs/lib-core"}
+// */
+
 // region:    --- Modules
 
 mod config;

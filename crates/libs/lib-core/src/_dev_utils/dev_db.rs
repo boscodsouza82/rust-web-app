@@ -6,13 +6,17 @@ use sqlx::{Pool, Postgres};
 use std::fs;
 use std::path::{Path, PathBuf};
 use std::time::Duration;
-use tracing::info;
+use tracing::{debug, info};
 
 type Db = Pool<Postgres>;
 
 // NOTE: Hardcode to prevent deployed system db update.
-const PG_DEV_POSTGRES_URL: &str = "postgres://postgres:welcome@localhost/postgres";
+// const PG_DEV_POSTGRES_URL: &str = "postgres://postgres:welcome@localhost/postgres";
+const PG_DEV_POSTGRES_URL: &str = "postgres://postgres:postgres@localhost/postgres";
 const PG_DEV_APP_URL: &str = "postgres://app_user:dev_only_pwd@localhost/app_db";
+
+const PG_DEV_CDERMA_URL: &str =
+	"postgres://cderma_user:dev_only_pwd@localhost/app_db";
 
 // sql files
 const SQL_RECREATE_DB_FILE_NAME: &str = "00-recreate-db.sql";
@@ -28,7 +32,9 @@ pub async fn init_dev_db() -> Result<(), Box<dyn std::error::Error>> {
 	//       current_dir given the worspace layout.
 	let current_dir = std::env::current_dir().unwrap();
 	let v: Vec<_> = current_dir.components().collect();
+
 	let path_comp = v.get(v.len().wrapping_sub(3));
+
 	let base_dir = if Some(true) == path_comp.map(|c| c.as_os_str() == "crates") {
 		v[..v.len() - 3].iter().collect::<PathBuf>()
 	} else {
@@ -49,7 +55,22 @@ pub async fn init_dev_db() -> Result<(), Box<dyn std::error::Error>> {
 		.collect();
 	paths.sort();
 
-	// -- SQL Execute each file.
+	// -- SQL Execute each file for cderma_user, cderma_db.
+	let cderma_db = new_db_pool(PG_DEV_CDERMA_URL).await?;
+
+	for path in paths.clone() {
+		let path_str = path.to_string_lossy();
+
+		if path_str.ends_with(".sql")
+			&& !path_str.ends_with(SQL_RECREATE_DB_FILE_NAME)
+			&& !path_str.contains("app")
+		{
+			pexec(&cderma_db, &path).await?;
+		}
+	}
+	info!("init_dev_db - migrate cderma_user cderma_db");
+
+	// -- SQL Execute each file for app_user, app_db.
 	let app_db = new_db_pool(PG_DEV_APP_URL).await?;
 
 	for path in paths {
@@ -57,10 +78,12 @@ pub async fn init_dev_db() -> Result<(), Box<dyn std::error::Error>> {
 
 		if path_str.ends_with(".sql")
 			&& !path_str.ends_with(SQL_RECREATE_DB_FILE_NAME)
+			&& !path_str.contains("cderma")
 		{
 			pexec(&app_db, &path).await?;
 		}
 	}
+	info!("init_dev_db - migrate app_user app_db");
 
 	// -- Init model layer.
 	let mm = ModelManager::new().await?;
